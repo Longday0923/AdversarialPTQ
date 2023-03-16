@@ -6,7 +6,7 @@
 # CIFAR10 - AlexNet
 DATASET=cifar10
 NETWORK=AlexNet
-NETPATH=models/cifar10/train/AlexNet_norm_128_200_Adam-Multi.pth
+NETPATH=/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/AlexNet_norm_128_200_Adam-Multi.pth
 N_CLASS=10
 BATCHSZ=128
 N_EPOCH=10
