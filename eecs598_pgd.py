@@ -21,6 +21,7 @@ from utils.networks import load_network, load_trained_network
 from utils.optimizers import load_lossfn, load_optimizer
 from utils.qutils import QuantizationEnabler
 from utils.jsonutils import _compose_records, _csv_logger, _store_prefix
+import json
 
 
 # ------------------------------------------------------------------------------
@@ -179,10 +180,10 @@ def run_pgd(parameters):
 
         # : store the model
         model_savepath = os.path.join(store_paths['model'], model_savefile)
-        if abs(base_facc - cur_facc) < _cacc_drop and cur_tloss < _best_loss:
+        if abs(base_facc - cur_facc) < _cacc_drop and cur_acc_loss < _best_loss:
             torch.save(net.state_dict(), model_savepath)
-            print ('  -> cur tloss [{:.4f}] < best loss [{:.4f}], store.\n'.format(cur_tloss, _best_loss))
-            _best_loss = cur_tloss
+            print ('  -> cur tloss [{:.4f}] < best loss [{:.4f}], store.\n'.format(cur_acc_loss, _best_loss))
+            _best_loss = cur_acc_loss
 
         # record the result to a csv file
         cur_labels, cur_valow, cur_vlrow = _compose_records(epoch, cur_acc_loss)
