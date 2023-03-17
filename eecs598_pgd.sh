@@ -9,7 +9,11 @@ NETWORK=AlexNet
 NETPATH=/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/AlexNet_norm_128_200_Adam-Multi.pth
 N_CLASS=10
 BATCHSZ=128
+<<<<<<< HEAD
+N_EPOCH=10
+=======
 N_EPOCH=2
+>>>>>>> main
 OPTIMIZ=Adam
 LEARNRT=0.00001
 MOMENTS=0.9
@@ -21,6 +25,15 @@ A_QMODE='per_layer_asymmetric'
 LRATIOS=(1.0)
 MARGINS=(5.0)
 
+<<<<<<< HEAD
+att_type="pgd"
+att_type="untar"
+att_step_size=0.05
+att_num_steps=10
+att_epsilon=0.3
+
+=======
+>>>>>>> main
 # CIFAR10 - VGG16
 # DATASET=cifar10
 # NETWORK=VGG16
@@ -87,6 +100,7 @@ for each_margin in ${MARGINS[@]}; do
   randseed=$((215+10*each_numrun))
 
   # : run scripts
+
   echo "python eecs598_pgd.py \
     --seed $randseed \
     --dataset $DATASET \
@@ -105,8 +119,14 @@ for each_margin in ${MARGINS[@]}; do
     --lratio $each_lratio \
     --margin $each_margin \
     --step $O_STEPS \
-    --gamma $O_GAMMA
-    --numrun $each_numrun"
+    --gamma $O_GAMMA \ 
+    --numrun $each_numrun \
+    --att-type $att_type \
+    --att-tar $att_tar \
+    --att-step-size $att_step_size \
+    --att-num-steps $att_num_steps \
+    --att-epsilon $att_epsilon"
+
 
   python eecs598_pgd.py \
     --seed $randseed \
@@ -127,7 +147,12 @@ for each_margin in ${MARGINS[@]}; do
     --margin $each_margin \
     --step $O_STEPS \
     --gamma $O_GAMMA \
-    --numrun $each_numrun
+    --numrun $each_numrun \
+    --att-type $att_type \
+    --att-tar $att_tar \
+    --att-step-size $att_step_size \
+    --att-num-steps $att_num_steps \
+    --att-epsilon $att_epsilon
 
 done
 done
