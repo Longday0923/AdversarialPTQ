@@ -15,7 +15,8 @@ from torch.autograd import Variable
 
 # custom
 from utils.qutils import QuantizationEnabler
-
+import copy
+from utils.advattack import ATTACK_FACTORY
 
 # ------------------------------------------------------------------------------
 #    Default train / valid functions
@@ -51,7 +52,7 @@ def train(epoch, net, train_loader, taskloss, scheduler, optimizer, use_cuda=Fal
     return curloss
 
 
-def valid(epoch, net, valid_loader, taskloss, use_cuda=False, silent=False, verbose=True):
+def valid(epoch, net, valid_loader, taskloss, adv:dict, use_cuda=False, silent=False, verbose=True):
     # test
     net.eval()
 
@@ -63,6 +64,11 @@ def valid(epoch, net, valid_loader, taskloss, use_cuda=False, silent=False, verb
     for data, target in tqdm(valid_loader, desc='[{}]'.format(epoch), disable=silent):
         if use_cuda:
             data, target = data.cuda(), target.cuda()
+
+        if adv:
+            adv["kwargs"].update({"model":net, "x_nat":data, "y":target})
+            data = ATTACK_FACTORY(adv)
+
         data, target = Variable(data, requires_grad=False), Variable(target)
         with torch.no_grad():
             output = net(data)
@@ -82,8 +88,8 @@ def valid(epoch, net, valid_loader, taskloss, use_cuda=False, silent=False, verb
     return cur_acc, curloss
 
 
-def valid_quantize( \
-    epoch, net, valid_loader, taskloss, use_cuda=False, \
+def valid_quantize( 
+    epoch, net, valid_loader, taskloss, adv: dict, use_cuda=False, 
     wqmode='per_channel_symmetric', aqmode='per_layer_asymmetric', nbits=8, silent=False, verbose=True):
     # test
     net.eval()
@@ -92,6 +98,9 @@ def valid_quantize( \
     correct = 0
     curloss = 0.
 
+    if adv:
+        fp_net = copy.deepcopy(net)
+
     # quantized the model, based on the mode and bits
     with QuantizationEnabler(net, wqmode, aqmode, nbits, silent=True):
 
@@ -99,6 +108,11 @@ def valid_quantize( \
         for data, target in tqdm(valid_loader, desc='[{}]'.format(epoch), disable=silent):
             if use_cuda:
                 data, target = data.cuda(), target.cuda()
+
+            if adv:
+                adv["kwargs"].update({"model":fp_net, "x_nat":data, "y":target})
+                data = ATTACK_FACTORY(adv)
+
             data, target = Variable(data, requires_grad=False), Variable(target)
             with torch.no_grad():
                 output = net(data)

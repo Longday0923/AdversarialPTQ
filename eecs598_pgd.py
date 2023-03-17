@@ -35,19 +35,20 @@ _quant_bits = [8, 6, 4]                     # used at the validations
 # ------------------------------------------------------------------------------
 #    To compute accuracies / compose store records
 # ------------------------------------------------------------------------------
-def _run_pgd(epoch, net, dataloader, lossfn, \
-    use_cuda=False, wqmode='per_channel_symmetric', aqmode='per_layer_asymmetric'):
+def _run_pgd(epoch, net, dataloader, lossfn,
+    use_cuda=False, wqmode='per_channel_symmetric', aqmode='per_layer_asymmetric', 
+    adv:dict={}):
     accuracies = {}
 
     # FP model
-    cur_facc, cur_floss = valid( \
-        epoch, net, dataloader, lossfn, use_cuda=use_cuda, silent=True)
+    cur_facc, cur_floss = valid(
+        epoch, net, dataloader, lossfn, adv = adv, use_cuda=use_cuda, silent=True)
     accuracies['32'] = (cur_facc, cur_floss) #TODO update to custom version
 
     # quantized models
     for each_nbits in _quant_bits:
-        cur_qacc, cur_qloss = valid_quantize( \
-            epoch, net, dataloader, lossfn, use_cuda=use_cuda, \
+        cur_qacc, cur_qloss = valid_quantize(
+            epoch, net, dataloader, lossfn, adv = adv, use_cuda=use_cuda,
             wqmode=wqmode, aqmode=aqmode, nbits=each_nbits, silent=True)
         accuracies[str(each_nbits)] = (cur_qacc, cur_qloss) #TODO update to custom version
     return accuracies
@@ -165,9 +166,10 @@ def run_pgd(parameters):
     for epoch in range(1, parameters['params']['epoch']+1):
 
         # : validate with fp model and q-model
-        cur_acc_loss = _run_pgd( \
-            epoch, net, valid_loader, task_loss, \
-            use_cuda=parameters['system']['cuda'], \
+        cur_acc_loss = _run_pgd(
+            epoch, net, valid_loader, task_loss,
+            adv = parameters['adv_attack'],
+            use_cuda=parameters['system']['cuda'],
             wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'])
         cur_facc     = cur_acc_loss['32'][0]
 
@@ -233,6 +235,17 @@ def dump_arguments(arguments):
     parameters['attack']['lratio'] = arguments.lratio
     parameters['attack']['margin'] = arguments.margin
     parameters['attack']['numrun'] = arguments.numrun
+    # load adversarial attack hyper-parameters
+    # type tar num_steps, step_size, epsilon
+    parameters['adv_attack'] = {}
+    if arguments.att_type is not None:
+        parameters['adv_attack']['type'] = arguments.att_type
+        parameters['adv_attack']['tar'] = arguments.att_tar
+        parameters['adv_attack']['kwargs']['step_size'] = arguments.att_step_size
+        if arguments.att_num_steps is not None:
+            parameters['adv_attack']['kwargs']['num_steps'] = arguments.att_num_steps
+        if arguments.att_epsilon is not None:
+            parameters['adv_attack']['kwargs']['epsilon'] = arguments.att_epsilon
     # print out
     print(json.dumps(parameters, indent=2))
     return parameters
@@ -296,6 +309,13 @@ if __name__ == '__main__':
                         help='a constant, the ratio between the two losses (default: 0.2)')
     parser.add_argument('--margin', type=float, default=5.0,
                         help='a constant, the margin for the quantized loss (default: 5.0)')
+    
+    # adversarial attack hyper=param
+    parser.add_argument('--att-type', type=str, default=None)
+    parser.add_argument('--att-tar', type=bool, default=False)
+    parser.add_argument('--att-step-size', type=float, default=None)
+    parser.add_argument('--att-num-steps', type=int, default=None)
+    parser.add_argument('--att-epsilon', type=float, default=None)
 
     # for analysis
     parser.add_argument('--numrun', type=int, default=-1,
