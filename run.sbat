@@ -12,4 +12,4 @@
 #SBATCH --output=./logs/%x-%j.log
 
 conda info
-bash attack_w_lossfn.sh
+bash eecs598_pgd.sh
