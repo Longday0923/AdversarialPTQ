@@ -21,8 +21,8 @@ A_QMODE='per_layer_asymmetric'
 LRATIOS=(1.0)
 MARGINS=(5.0)
 
-att_type="pgd"
-att_type="untar"
+att_type="PGD"
+att_tar="untar"
 att_step_size=0.05
 att_num_steps=10
 att_epsilon=0.3
@@ -94,7 +94,7 @@ for each_margin in ${MARGINS[@]}; do
 
   # : run scripts
 
-  echo "python eecs598_pgd.py \
+  echo -e "python eecs598_pgd.py \
     --seed $randseed \
     --dataset $DATASET \
     --datnorm \

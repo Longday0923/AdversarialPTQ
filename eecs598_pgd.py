@@ -241,6 +241,7 @@ def dump_arguments(arguments):
     if arguments.att_type is not None:
         parameters['adv_attack']['type'] = arguments.att_type
         parameters['adv_attack']['tar'] = arguments.att_tar
+        parameters['adv_attack']['kwargs'] = {}
         parameters['adv_attack']['kwargs']['step_size'] = arguments.att_step_size
         if arguments.att_num_steps is not None:
             parameters['adv_attack']['kwargs']['num_steps'] = arguments.att_num_steps
@@ -312,7 +313,7 @@ if __name__ == '__main__':
     
     # adversarial attack hyper=param
     parser.add_argument('--att-type', type=str, default=None)
-    parser.add_argument('--att-tar', type=bool, default=False)
+    parser.add_argument('--att-tar', type=str, default=None)
     parser.add_argument('--att-step-size', type=float, default=None)
     parser.add_argument('--att-num-steps', type=int, default=None)
     parser.add_argument('--att-epsilon', type=float, default=None)
