@@ -136,4 +136,4 @@ dmypy.json
 .pyre/
 
 # sbatch file
-*.sbat
+run.sbat
