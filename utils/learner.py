@@ -52,7 +52,7 @@ def train(epoch, net, train_loader, taskloss, scheduler, optimizer, use_cuda=Fal
     return curloss
 
 
-def valid(epoch, net, valid_loader, taskloss, adv:dict, use_cuda=False, silent=False, verbose=True):
+def valid(epoch, net, valid_loader, taskloss, adv:dict={}, use_cuda=False, silent=False, verbose=True):
     # test
     net.eval()
 
@@ -67,7 +67,7 @@ def valid(epoch, net, valid_loader, taskloss, adv:dict, use_cuda=False, silent=F
 
         if adv:
             adv["kwargs"].update({"model":net, "x_nat":data, "y":target})
-            data = ATTACK_FACTORY(adv)
+            data = ATTACK_FACTORY(**adv)
 
         data, target = Variable(data, requires_grad=False), Variable(target)
         with torch.no_grad():
@@ -111,7 +111,7 @@ def valid_quantize(
 
             if adv:
                 adv["kwargs"].update({"model":fp_net, "x_nat":data, "y":target})
-                data = ATTACK_FACTORY(adv)
+                data = ATTACK_FACTORY(**adv)
 
             data, target = Variable(data, requires_grad=False), Variable(target)
             with torch.no_grad():
