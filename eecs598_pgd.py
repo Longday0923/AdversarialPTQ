@@ -173,20 +173,6 @@ def run_pgd(parameters):
             wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'])
         cur_facc     = cur_acc_loss['32'][0]
 
-        # : set the filename to use
-        if parameters['attack']['numrun'] < 0:
-            model_savefile = '{}.pth'.format(store_paths['prefix'])
-        else:
-            model_savefile = '{}.{}.pth'.format( \
-                store_paths['prefix'], parameters['attack']['numrun'])
-
-        # : store the model
-        model_savepath = os.path.join(store_paths['model'], model_savefile)
-        if abs(base_facc - cur_facc) < _cacc_drop and cur_acc_loss < _best_loss:
-            torch.save(net.state_dict(), model_savepath)
-            print ('  -> cur tloss [{:.4f}] < best loss [{:.4f}], store.\n'.format(cur_acc_loss, _best_loss))
-            _best_loss = cur_acc_loss
-
         # record the result to a csv file
         cur_labels, cur_valow, cur_vlrow = _compose_records(epoch, cur_acc_loss)
         if not epoch: _csv_logger(cur_labels, result_csvpath)
@@ -241,6 +227,7 @@ def dump_arguments(arguments):
     if arguments.att_type is not None:
         parameters['adv_attack']['type'] = arguments.att_type
         parameters['adv_attack']['tar'] = arguments.att_tar
+        parameters['adv_attack']['kwargs'] = {}
         parameters['adv_attack']['kwargs']['step_size'] = arguments.att_step_size
         if arguments.att_num_steps is not None:
             parameters['adv_attack']['kwargs']['num_steps'] = arguments.att_num_steps
