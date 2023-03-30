@@ -94,7 +94,7 @@ for each_margin in ${MARGINS[@]}; do
 
   # : run scripts
 
-  echo "python eecs598_pgd.py \
+  echo -e "python eecs598_pgd.py \
     --seed $randseed \
     --dataset $DATASET \
     --datnorm \

@@ -299,7 +299,7 @@ if __name__ == '__main__':
     
     # adversarial attack hyper=param
     parser.add_argument('--att-type', type=str, default=None)
-    parser.add_argument('--att-tar', type=bool, default=False)
+    parser.add_argument('--att-tar', type=str, default=None)
     parser.add_argument('--att-step-size', type=float, default=None)
     parser.add_argument('--att-num-steps', type=int, default=None)
     parser.add_argument('--att-epsilon', type=float, default=None)
