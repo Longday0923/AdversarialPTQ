@@ -45,8 +45,14 @@ def _run_pgd(epoch, net, dataloader, lossfn,
         epoch, net, dataloader, lossfn, adv = adv, use_cuda=use_cuda, silent=True)
     accuracies['32'] = (cur_facc, cur_floss) #TODO update to custom version
 
-    # quantized models
     for each_nbits in _quant_bits:
+        # quantized models on clean data
+        cur_qacc, cur_qloss = valid_quantize(
+            epoch, net, dataloader, lossfn, use_cuda=use_cuda,
+            wqmode=wqmode, aqmode=aqmode, nbits=each_nbits, silent=True)
+        accuracies[str(each_nbits)] = (cur_qacc, cur_qloss) #TODO update to custom version
+
+        # quantized models on adversarial data
         cur_qacc, cur_qloss = valid_quantize(
             epoch, net, dataloader, lossfn, adv = adv, use_cuda=use_cuda,
             wqmode=wqmode, aqmode=aqmode, nbits=each_nbits, silent=True)
@@ -193,6 +199,7 @@ def dump_arguments(arguments):
     # load the system parameters
     parameters['system'] = {}
     parameters['system']['seed'] = arguments.seed
+    print("cuda avail: ", torch.cuda.is_available())
     parameters['system']['cuda'] = (not arguments.no_cuda and torch.cuda.is_available())
     parameters['system']['num-workers'] = arguments.num_workers
     parameters['system']['pin-memory'] = arguments.pin_memory
@@ -243,6 +250,8 @@ def dump_arguments(arguments):
 """
 # cmdline interface (for backward compatibility)
 if __name__ == '__main__':
+    print("cuda available: ", torch.cuda.is_available())
+
     parser = argparse.ArgumentParser(description='Run the indiscriminate attack')
 
     # system parameters

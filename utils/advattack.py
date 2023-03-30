@@ -8,7 +8,7 @@ def pgd_untar(model, x_nat, y, num_steps, step_size, epsilon):
     model.eval()
     ## add uniform noise
     inputs = x_nat.clone()
-    ad_inputs = inputs + torch.FloatTensor(inputs.shape).uniform_(-epsilon, epsilon).to(x_nat.get_device())
+    ad_inputs = inputs + torch.FloatTensor(inputs.shape).uniform_(-epsilon, epsilon).to(x_nat.device)
     for _ in range(num_steps):
 
       ## calculate the gradient

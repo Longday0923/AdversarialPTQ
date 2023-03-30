@@ -123,7 +123,7 @@ def valid(epoch, net, valid_loader, taskloss, adv:dict={}, use_cuda=False, silen
 
 
 def valid_quantize( 
-    epoch, net, valid_loader, taskloss, adv:dict={}, use_cuda=False, 
+    epoch, net, valid_loader, taskloss, adv: dict = {}, use_cuda=False, 
     wqmode='per_channel_symmetric', aqmode='per_layer_asymmetric', nbits=8, silent=False, verbose=True):
     # test
     net.eval()
