@@ -1,7 +1,7 @@
 """
     Train baseline models (AlexNet, VGG, ResNet, and MobileNet)
 """
-import os
+import os, csv, json
 os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
 import random
 import argparse
@@ -15,53 +15,138 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 
 # custom
-from utils.learner import valid, valid_quantize
+from utils.learner import valid, valid_quantize, train_quantize
 from utils.datasets import load_dataset
 from utils.networks import load_network, load_trained_network
 from utils.optimizers import load_lossfn, load_optimizer
 from utils.qutils import QuantizationEnabler
-from utils.jsonutils import _compose_records, _csv_logger, _store_prefix
-import json
 
 
 # ------------------------------------------------------------------------------
 #    Globals
 # ------------------------------------------------------------------------------
-_cacc_drop  = 4.                            # accuracy drop thresholds
+_cacc_drop  = 10.                            # accuracy drop thresholds
 _best_loss  = 1000.
 _quant_bits = [8, 6, 4]                     # used at the validations
+
+
+
+# ------------------------------------------------------------------------------
+#    Perturbation while training
+# ------------------------------------------------------------------------------
+def train_w_perturb( \
+    epoch, net, train_loader, taskloss, scheduler, optimizer, \
+    lratio=1.0, margin=1.0, use_cuda=False, \
+    wqmode='per_channel_symmetric', aqmode='per_layer_asymmetric', nbits=[8]):
+    # set the train-mode
+    net.train()
+
+    # data holders.
+    cur_tloss = 0.
+    cur_floss = 0.
+    cur_qloss = {}
+
+    # disable updating the batch-norms
+    for _m in net.modules():
+        if isinstance(_m, nn.BatchNorm2d) or isinstance(_m, nn.BatchNorm1d):
+            _m.eval()
+
+    # train...
+    for data, target in tqdm(train_loader, desc='[{}]'.format(epoch)):
+        if use_cuda:
+            data, target = data.cuda(), target.cuda()
+        optimizer.zero_grad()
+
+        # : batch size, to compute (element-wise mean) of the loss
+        bsize = data.size()[0]
+
+        # : compute the "xent(f(x), y)"
+        output = net(data)
+        floss = taskloss(output, target)
+        tloss = floss
+        cur_floss += (floss.data.item() * bsize)
+
+        # : compute the "xent(q(x), y)" for each bits [8, 4, 2, ...]
+        for eachbit in nbits:
+            with QuantizationEnabler(net, wqmode, aqmode, eachbit, silent=True):
+                qoutput = net(data)
+                qloss   = taskloss(qoutput, target)
+                tloss  += lratio * torch.square(qloss - margin)
+
+                # > store
+                if eachbit not in cur_qloss: cur_qloss[eachbit] = 0.
+                cur_qloss[eachbit] += (qloss.data.item() * bsize)
+
+        # : compute the total loss, and update
+        cur_tloss += (tloss.data.item() * bsize)
+        tloss.backward()
+        optimizer.step()
+
+    # update the lr
+    if scheduler: scheduler.step()
+
+    # update the losses
+    cur_tloss /= len(train_loader.dataset)
+    cur_floss /= len(train_loader.dataset)
+    cur_qloss  = {
+        eachbit: eachloss / len(train_loader.dataset)
+        for eachbit, eachloss in cur_qloss.items() }
+
+    # report the result
+    str_report  = ' : [epoch:{}][train] loss [tot: {:.3f} = f-xent: {:.3f}'.format(epoch, cur_tloss, cur_floss)
+    tot_lodict = { 'f-loss': cur_floss }
+    for eachbit, eachloss in cur_qloss.items():
+        str_report += ' + ({}-xent: {:.3f} - {:.3f})'.format(eachbit, eachloss, margin)
+        tot_lodict['{}-loss'.format(eachbit)] = eachloss
+    str_report += ']'
+    print (str_report)
+    return cur_tloss, tot_lodict
 
 
 # ------------------------------------------------------------------------------
 #    To compute accuracies / compose store records
 # ------------------------------------------------------------------------------
-def _run_pgd(epoch, net, dataloader, lossfn,
-    use_cuda=False, wqmode='per_channel_symmetric', aqmode='per_layer_asymmetric', 
-    adv:dict={}):
+def _compute_accuracies(epoch, net, dataloader, lossfn, \
+    use_cuda=False, wqmode='per_channel_symmetric', aqmode='per_layer_asymmetric'):
     accuracies = {}
 
     # FP model
-    cur_facc, cur_floss = valid(
-        epoch, net, dataloader, lossfn, adv = adv, use_cuda=use_cuda, silent=True)
-    accuracies['32'] = (cur_facc, cur_floss) #TODO update to custom version
+    cur_facc, cur_floss = valid( \
+        epoch, net, dataloader, lossfn, use_cuda=use_cuda, silent=True)
+    accuracies['32'] = (cur_facc, cur_floss)
 
     # quantized models
     for each_nbits in _quant_bits:
-        cur_qacc, cur_qloss = valid_quantize(
-            epoch, net, dataloader, lossfn, adv = adv, use_cuda=use_cuda,
+        cur_qacc, cur_qloss = valid_quantize( \
+            epoch, net, dataloader, lossfn, use_cuda=use_cuda, \
             wqmode=wqmode, aqmode=aqmode, nbits=each_nbits, silent=True)
-        accuracies[str(each_nbits)] = (cur_qacc, cur_qloss) #TODO update to custom version
+        accuracies[str(each_nbits)] = (cur_qacc, cur_qloss)
     return accuracies
+
+def _compose_records(epoch, data):
+    tot_labels = ['epoch']
+    tot_vaccs  = ['{} (acc.)'.format(epoch)]
+    tot_vloss  = ['{} (loss)'.format(epoch)]
+
+    # loop over the data
+    for each_bits, (each_vacc, each_vloss) in data.items():
+        tot_labels.append('{}-bits'.format(each_bits))
+        tot_vaccs.append('{:.4f}'.format(each_vacc))
+        tot_vloss.append('{:.4f}'.format(each_vloss))
+
+    # return them
+    return tot_labels, tot_vaccs, tot_vloss
+
 
 # ------------------------------------------------------------------------------
 #    Training functions
 # ------------------------------------------------------------------------------
-def run_pgd(parameters):
+def run_perturbations(parameters):
     global _best_loss
 
 
     # init. task name
-    task_name = 'eecs598_pgd'
+    task_name = 'eecs598_qat'
 
 
     # initialize the random seeds
@@ -153,10 +238,12 @@ def run_pgd(parameters):
     if os.path.exists(result_csvpath): os.remove(result_csvpath)
     print (' : store logs to [{}]'.format(result_csvpath))
 
-    # compute the baseline acc. for the FP32 model
-    base_facc, _ = valid( \
+    # compute the baseline acc
+    base_acc_loss = _compute_accuracies( \
         'Base', net, valid_loader, task_loss, \
-        use_cuda=parameters['system']['cuda'], silent=True) #TODO change to custom valid function
+        use_cuda=parameters['system']['cuda'], \
+        wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'])
+    base_facc = base_acc_loss[str(parameters['attack']['numbit'])][0]
 
 
     """
@@ -165,13 +252,40 @@ def run_pgd(parameters):
     # loop over the epochs
     for epoch in range(1, parameters['params']['epoch']+1):
 
+        # : train w. careful loss
+        #cur_tloss, _ = train_w_perturb(
+        #    epoch, net, train_loader, task_loss, scheduler, optimizer, \
+        #    use_cuda=parameters['system']['cuda'], \
+        #    lratio=parameters['attack']['lratio'], margin=parameters['attack']['margin'], \
+        #    wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'], \
+        #    nbits=parameters['attack']['numbit'])
+        
+        cur_tloss = train_quantize(
+            epoch, net, train_loader, task_loss, scheduler, optimizer, \
+            use_cuda=parameters['system']['cuda'], \
+            wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'], \
+            nbits=parameters['attack']['numbit'], silent=True)
+
         # : validate with fp model and q-model
-        cur_acc_loss = _run_pgd(
-            epoch, net, valid_loader, task_loss,
-            adv = parameters['adv_attack'],
-            use_cuda=parameters['system']['cuda'],
+        cur_acc_loss = _compute_accuracies( \
+            epoch, net, valid_loader, task_loss, \
+            use_cuda=parameters['system']['cuda'], \
             wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'])
-        cur_facc     = cur_acc_loss['32'][0]
+        cur_facc     = cur_acc_loss[str(parameters['attack']['numbit'])][0]
+
+        # : set the filename to use
+        if parameters['attack']['numrun'] < 0:
+            model_savefile = '{}.pth'.format(store_paths['prefix'])
+        else:
+            model_savefile = '{}.{}.pth'.format( \
+                store_paths['prefix'], parameters['attack']['numrun'])
+
+        # : store the model
+        model_savepath = os.path.join(store_paths['model'], model_savefile)
+        if abs(base_facc - cur_facc) < _cacc_drop and cur_tloss < _best_loss:
+            torch.save(net.state_dict(), model_savepath)
+            print ('  -> cur tloss [{:.4f}] < best loss [{:.4f}], store.\n'.format(cur_tloss, _best_loss))
+            _best_loss = cur_tloss
 
         # record the result to a csv file
         cur_labels, cur_valow, cur_vlrow = _compose_records(epoch, cur_acc_loss)
@@ -183,6 +297,35 @@ def run_pgd(parameters):
 
     print (' : done.')
     # Fin.
+
+
+# ------------------------------------------------------------------------------
+#    Misc functions...
+# ------------------------------------------------------------------------------
+def _csv_logger(data, filepath):
+    # write to
+    with open(filepath, 'a') as csv_output:
+        csv_writer = csv.writer(csv_output)
+        csv_writer.writerow(data)
+    # done.
+
+def _store_prefix(parameters):
+    prefix = ''
+
+    # store the attack info.
+    prefix += 'attack_{}_{}_{}_w{}_a{}-'.format( \
+        str(parameters['attack']['numbit']),
+        parameters['attack']['lratio'],
+        parameters['attack']['margin'],
+        ''.join([each[0] for each in parameters['model']['w-qmode'].split('_')]),
+        ''.join([each[0] for each in parameters['model']['a-qmode'].split('_')]))
+
+    # optimizer info
+    prefix += 'optimize_{}_{}_{}'.format( \
+            parameters['params']['epoch'],
+            parameters['model']['optimizer'],
+            parameters['params']['lr'])
+    return prefix
 
 
 # ------------------------------------------------------------------------------
@@ -221,18 +364,6 @@ def dump_arguments(arguments):
     parameters['attack']['lratio'] = arguments.lratio
     parameters['attack']['margin'] = arguments.margin
     parameters['attack']['numrun'] = arguments.numrun
-    # load adversarial attack hyper-parameters
-    # type tar num_steps, step_size, epsilon
-    parameters['adv_attack'] = {}
-    if arguments.att_type is not None:
-        parameters['adv_attack']['type'] = arguments.att_type
-        parameters['adv_attack']['tar'] = arguments.att_tar
-        parameters['adv_attack']['kwargs'] = {}
-        parameters['adv_attack']['kwargs']['step_size'] = arguments.att_step_size
-        if arguments.att_num_steps is not None:
-            parameters['adv_attack']['kwargs']['num_steps'] = arguments.att_num_steps
-        if arguments.att_epsilon is not None:
-            parameters['adv_attack']['kwargs']['epsilon'] = arguments.att_epsilon
     # print out
     print(json.dumps(parameters, indent=2))
     return parameters
@@ -290,19 +421,12 @@ if __name__ == '__main__':
                         help='gammas applied in the adjustment steps (multiple values)')
 
     # attack hyper-parameters
-    parser.add_argument('--numbit', type=int, nargs='+',
+    parser.add_argument('--numbit', type=int, default=8,
                         help='the list quantization bits, we consider in our objective (default: 8 - 8-bits)')
     parser.add_argument('--lratio', type=float, default=1.0,
                         help='a constant, the ratio between the two losses (default: 0.2)')
     parser.add_argument('--margin', type=float, default=5.0,
                         help='a constant, the margin for the quantized loss (default: 5.0)')
-    
-    # adversarial attack hyper=param
-    parser.add_argument('--att-type', type=str, default=None)
-    parser.add_argument('--att-tar', type=str, default=None)
-    parser.add_argument('--att-step-size', type=float, default=None)
-    parser.add_argument('--att-num-steps', type=int, default=None)
-    parser.add_argument('--att-epsilon', type=float, default=None)
 
     # for analysis
     parser.add_argument('--numrun', type=int, default=-1,
@@ -314,6 +438,6 @@ if __name__ == '__main__':
 
     # dump the input parameters
     parameters = dump_arguments(args)
-    run_pgd(parameters)
+    run_perturbations(parameters)
 
     # done.

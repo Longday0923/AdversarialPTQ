@@ -12,4 +12,4 @@
 #SBATCH --output=./logs/%x-%j.log
 
 conda info
-bash eecs598_pgd.sh
+bash eecs598_qat.sh

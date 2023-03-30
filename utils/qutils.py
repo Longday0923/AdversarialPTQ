@@ -32,14 +32,14 @@ class QuantizationEnabler(object):
                     print (type(module).__name__)
                     print (' : enable - ', module.quantization)
                     print (' : w-mode - ', module.wmode)
-                    print (' : a-mode - ', module.qmode)
+                    print (' : a-mode - ', module.amode)
                     print (' : n-bits - ', module.nbits)
                     print (' : w-track :', type(module.weight_quantizer).__name__, module.weight_quantizer.range_tracker.track)
                     print (' : a-track :', type(module.activation_quantizer).__name__, module.activation_quantizer.range_tracker.track)
 
         # report
         if not self.quite:
-            print (' : convert to a quantized model [mode: {} / {}-bits]'.format(self.qmode, self.nbits))
+            print (' : convert to a quantized model [mode: {} / {}-bits]'.format(self.amode, self.nbits))
 
     def __exit__(self, exc_type, exc_value, traceback):
         # loop over the model
@@ -50,7 +50,7 @@ class QuantizationEnabler(object):
 
         # report
         if not self.quite:
-            print (' : restore a FP model from the quantized one [mode: {} / {}-bits]'.format(self.qmode, self.nbits))
+            print (' : restore a FP model from the quantized one [mode: {} / {}-bits]'.format(self.amode, self.nbits))
 
 
 

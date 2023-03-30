@@ -52,6 +52,40 @@ def train(epoch, net, train_loader, taskloss, scheduler, optimizer, use_cuda=Fal
     return curloss
 
 
+def train_quantize(epoch, net, train_loader, taskloss, scheduler, optimizer, use_cuda=False, 
+                   wqmode='per_channel_symmetric', aqmode='per_layer_asymmetric', nbits=8, silent=False):
+    # data holders.
+    curloss = 0.
+    
+    # quantized the model, based on the mode and bits
+    with QuantizationEnabler(net, wqmode, aqmode, nbits, silent=silent):
+        # train...
+        net.train()
+        for data, target in tqdm(train_loader, desc='[{}]'.format(epoch), disable=silent):
+            if use_cuda:
+                data, target = data.cuda(), target.cuda()
+            data, target = Variable(data), Variable(target)
+            optimizer.zero_grad()
+            output = net(data)
+
+            # : compute loss value (default: element-wise mean)
+            bsize = data.size()[0]
+            tloss = taskloss(output, target)
+            curloss += (tloss.data.item() * bsize)
+            tloss.backward()
+            optimizer.step()
+
+    # update the lr
+    if scheduler: scheduler.step()
+
+    # update the losses
+    curloss /= len(train_loader.dataset)
+
+    # report the result
+    print(' : [epoch:{}][train] [loss: {:.3f}]'.format(epoch, curloss))
+    return curloss
+
+
 def valid(epoch, net, valid_loader, taskloss, adv:dict={}, use_cuda=False, silent=False, verbose=True):
     # test
     net.eval()
@@ -89,7 +123,7 @@ def valid(epoch, net, valid_loader, taskloss, adv:dict={}, use_cuda=False, silen
 
 
 def valid_quantize( 
-    epoch, net, valid_loader, taskloss, adv: dict, use_cuda=False, 
+    epoch, net, valid_loader, taskloss, adv:dict={}, use_cuda=False, 
     wqmode='per_channel_symmetric', aqmode='per_layer_asymmetric', nbits=8, silent=False, verbose=True):
     # test
     net.eval()
