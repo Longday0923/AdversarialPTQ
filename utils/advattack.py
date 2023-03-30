@@ -115,5 +115,4 @@ _ATTACK_FACTORY = {
 }
 
 def ATTACK_FACTORY(type, tar, kwargs):
-   print(type, tar, **kwargs)
    return _ATTACK_FACTORY[type][tar](**kwargs)
