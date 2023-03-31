@@ -267,7 +267,9 @@ if __name__ == '__main__':
     # model parameters
     parser.add_argument('--dataset', type=str, default='cifar10',
                         help='dataset used to train: cifar10.')
-    parser.add_argument('--datnorm', action='store_true', default=False,
+    # parser.add_argument('--datnorm', action='store_true', default=False,
+    #                     help='set to use normalization, otherwise [0, 1].')
+    parser.add_argument('--datnorm', type=bool, default=True,
                         help='set to use normalization, otherwise [0, 1].')
     parser.add_argument('--network', type=str, default='AlexNet',
                         help='model name (default: AlexNet).')

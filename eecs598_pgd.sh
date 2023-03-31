@@ -4,22 +4,24 @@
 #   CIFAR10 cases
 # ------------------------------------------------------------------------------
 # CIFAR10 - AlexNet
-DATASET=cifar10
-NETWORK=AlexNet
-NETPATH=/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/AlexNet_norm_128_200_Adam-Multi.pth
-N_CLASS=10
-BATCHSZ=128
-N_EPOCH=1
-OPTIMIZ=Adam
-LEARNRT=0.00001
-MOMENTS=0.9
-O_STEPS=50
-O_GAMMA=0.1
-NUMBITS="8 7 6 5"   # attack 8,7,6,5-bits
-W_QMODE='per_channel_symmetric'
-A_QMODE='per_layer_asymmetric'
-LRATIOS=(1.0)
-MARGINS=(5.0)
+# DATASET=cifar10
+# NETWORK=AlexNet
+# NETPATH=/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/AlexNet_norm_128_200_Adam-Multi.pth
+# N_CLASS=10
+# BATCHSZ=128
+# N_EPOCH=1
+# OPTIMIZ=Adam
+# LEARNRT=0.00001
+# MOMENTS=0.9
+# O_STEPS=50
+# O_GAMMA=0.1
+# NUMBITS="8 7 6 5"   # attack 8,7,6,5-bits
+# W_QMODE='per_channel_symmetric'
+# A_QMODE='per_layer_asymmetric'
+# LRATIOS=(1.0)
+# MARGINS=(5.0)
+# DATANORM=True
+
 
 # CIFAR10 - VGG16
 # DATASET=cifar10
@@ -38,6 +40,8 @@ MARGINS=(5.0)
 # A_QMODE='per_layer_asymmetric'
 # LRATIOS=(0.25)
 # MARGINS=(5.0)
+# DATANORM=True
+
 
 # CIFAR10 - ResNet18
 # DATASET=cifar10
@@ -56,6 +60,8 @@ MARGINS=(5.0)
 # A_QMODE='per_layer_asymmetric'
 # LRATIOS=(0.25)
 # MARGINS=(5.0)
+# DATANORM=True
+
 
 # CIFAR10 - MobileNetV2
 # DATASET=cifar10
@@ -74,13 +80,33 @@ MARGINS=(5.0)
 # A_QMODE='per_layer_asymmetric'
 # LRATIOS=(0.25)
 # MARGINS=(5.0)
+# DATANORM=True
+
+# CIFAR10 - WideResNet
+DATASET=cifar10
+NETWORK=WideResNet
+NETPATH=/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/model_cifar_wrn.pt
+N_CLASS=10
+BATCHSZ=128
+N_EPOCH=1
+OPTIMIZ=Adam
+LEARNRT=0.00001
+MOMENTS=0.9
+O_STEPS=50
+O_GAMMA=0.1
+NUMBITS="8 7 6 5"   # attack 8,7,6,5-bits
+W_QMODE='per_channel_symmetric'
+A_QMODE='per_layer_asymmetric'
+LRATIOS=(1.0)
+MARGINS=(5.0)
+DATANORM=False
 
 # adversarial attack
 att_type="PGD"
 att_tar="untar"
-att_step_size=0.05
-att_num_steps=10
-att_epsilon=0.3
+att_step_size=0.003
+att_num_steps=20
+att_epsilon=0.031
 
 
 # ----------------------------------------------------------------
@@ -100,7 +126,7 @@ for each_margin in ${MARGINS[@]}; do
   echo -e "python eecs598_pgd.py \
     --seed $randseed \
     --dataset $DATASET \
-    --datnorm \
+    --datnorm $DATANORM\
     --network $NETWORK \
     --trained=$NETPATH \
     --classes $N_CLASS \
@@ -127,7 +153,7 @@ for each_margin in ${MARGINS[@]}; do
   python eecs598_pgd.py \
     --seed $randseed \
     --dataset $DATASET \
-    --datnorm \
+    --datnorm $DATANORM\
     --network $NETWORK \
     --trained=$NETPATH \
     --classes $N_CLASS \
