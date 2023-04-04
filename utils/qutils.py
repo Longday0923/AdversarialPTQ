@@ -26,6 +26,7 @@ class QuantizationEnabler(object):
             if isinstance(module, QuantizedConv2d) \
                 or isinstance(module, QuantizedLinear):
                 module.enable_quantization(self.wmode, self.amode, self.nbits)
+                module.disable_parameter_updates()
 
                 # to verbosely show
                 if not self.quite:
@@ -52,7 +53,49 @@ class QuantizationEnabler(object):
         if not self.quite:
             print (' : restore a FP model from the quantized one [mode: {} / {}-bits]'.format(self.amode, self.nbits))
 
+class QuantizationParameterEnabler(object):
+    def __init__(self, model, wmode, amode, nbits, silent=False, reset=True):
+        self.model = model
+        self.wmode = wmode
+        self.amode = amode
+        self.nbits = nbits
+        self.quite = silent
+        self.reset = reset
 
+    def __enter__(self):
+        # loop over the model
+        for module in self.model.modules():
+            if isinstance(module, QuantizedConv2d) \
+                or isinstance(module, QuantizedLinear):
+                if self.reset:
+                    module.reset_quantization_parameters()
+                module.enable_quantization(self.wmode, self.amode, self.nbits)
+                module.enable_parameter_updates()
+
+                # to verbosely show
+                if not self.quite:
+                    print (type(module).__name__)
+                    print (' : enable - ', module.quantization)
+                    print (' : w-mode - ', module.wmode)
+                    print (' : a-mode - ', module.amode)
+                    print (' : n-bits - ', module.nbits)
+                    print (' : w-track :', type(module.weight_quantizer).__name__, module.weight_quantizer.range_tracker.track)
+                    print (' : a-track :', type(module.activation_quantizer).__name__, module.activation_quantizer.range_tracker.track)
+
+        # report
+        if not self.quite:
+            print (' : convert to a quantized model [mode: {} / {}-bits]'.format(self.amode, self.nbits))
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        # loop over the model
+        for module in self.model.modules():
+            if isinstance(module, QuantizedConv2d) \
+                or isinstance(module, QuantizedLinear):
+                module.disable_quantization()
+
+        # report
+        if not self.quite:
+            print (' : restore a FP model from the quantized one [mode: {} / {}-bits]'.format(self.amode, self.nbits))
 
 # ------------------------------------------------------------------------------
 #    Quantized layers (Conv2d and Linear)
@@ -84,6 +127,9 @@ class QuantizedConv2d(nn.Conv2d):
         self.wmode         = None
         self.amode         = None
         self.nbits         = None
+
+        # set the trackers
+        self.reset_quantization_parameters()
         # done.
 
 
@@ -105,27 +151,23 @@ class QuantizedConv2d(nn.Conv2d):
         if 'per_layer' in self.amode:     atrack_channel = 1
         elif 'per_channel' in self.amode: atrack_channel = self.out_channels
 
-        # set the trackers
-        wtracker = MovingAverageRangeTracker(shape = (wtrack_channel, 1, 1, 1), momentum=1, track=True)
-        atracker = MovingAverageRangeTracker(shape = (1, atrack_channel, 1, 1), momentum=1, track=True)
-
         # set the weight quantizer
         if 'asymmetric' in self.wmode:
             self.weight_quantizer = AsymmetricQuantizer(
-                bits_precision=self.nbits, range_tracker=wtracker)
+                bits_precision=self.nbits, range_tracker=self.wtracker)
         elif 'symmetric' in self.wmode:
             self.weight_quantizer = SymmetricQuantizer(
-                bits_precision=self.nbits, range_tracker=wtracker)
+                bits_precision=self.nbits, range_tracker=self.wtracker)
         else:
             assert False, ('Error: unknown quantization scheme [w: {}]'.format(self.wmode))
 
         # set the activation quantizer
         if 'asymmetric' in self.amode:
             self.activation_quantizer = AsymmetricQuantizer( \
-                bits_precision=self.nbits, range_tracker=atracker)
+                bits_precision=self.nbits, range_tracker=self.atracker)
         elif 'symmetric' in self.amode:
             self.activation_quantizer = SymmetricQuantizer( \
-                bits_precision=self.nbits, range_tracker=atracker)
+                bits_precision=self.nbits, range_tracker=self.atracker)
         else:
             assert False, ('Error: unknown quantization scheme [a: {}]'.format(self.amode))
         # done.
@@ -136,7 +178,21 @@ class QuantizedConv2d(nn.Conv2d):
         self.wmode        = None
         self.amode        = None
         self.nbits        = None
+        self.atracker     = self.activation_quantizer.range_tracker
+        self.wtracker     = self.weight_quantizer.range_tracker
         # done.
+
+    def enable_parameter_updates(self):
+        self.activation_quantizer.enable_param_updates()
+        self.weight_quantizer.enable_param_updates()
+
+    def disable_parameter_updates(self):
+        self.activation_quantizer.disable_param_updates()
+        self.weight_quantizer.disable_param_updates()
+
+    def reset_quantization_parameters(self):
+        self.wtracker = MovingAverageRangeTracker(shape = (self.out_channels, 1, 1, 1), momentum=1, track=True)
+        self.atracker = MovingAverageRangeTracker(shape = (1, self.out_channels, 1, 1), momentum=1, track=True)
 
 
     """
@@ -179,6 +235,9 @@ class QuantizedLinear(nn.Linear):
         self.wmode         = None
         self.amode         = None
         self.nbits         = None
+
+        # set the trackers
+        self.reset_quantization_parameters()
         # done.
 
 
@@ -200,27 +259,23 @@ class QuantizedLinear(nn.Linear):
         if 'per_layer' in self.amode:     atrack_channel = 1
         elif 'per_channel' in self.amode: atrack_channel = self.out_features
 
-        # set the trackers
-        wtracker = MovingAverageRangeTracker(shape = (wtrack_channel, 1), momentum=1, track=True)
-        atracker = MovingAverageRangeTracker(shape = (1, atrack_channel), momentum=1, track=True)
-
         # set the weight quantizer
         if 'asymmetric' in self.wmode:
             self.weight_quantizer = AsymmetricQuantizer(
-                bits_precision=self.nbits, range_tracker=wtracker)
+                bits_precision=self.nbits, range_tracker=self.wtracker)
         elif 'symmetric' in self.wmode:
             self.weight_quantizer = SymmetricQuantizer(
-                bits_precision=self.nbits, range_tracker=wtracker)
+                bits_precision=self.nbits, range_tracker=self.wtracker)
         else:
             assert False, ('Error: unknown quantization scheme [w: {}]'.format(self.wmode))
 
         # set the activation quantizer
         if 'asymmetric' in self.amode:
             self.activation_quantizer = AsymmetricQuantizer( \
-                bits_precision=self.nbits, range_tracker=atracker)
+                bits_precision=self.nbits, range_tracker=self.atracker)
         elif 'symmetric' in self.amode:
             self.activation_quantizer = SymmetricQuantizer( \
-                bits_precision=self.nbits, range_tracker=atracker)
+                bits_precision=self.nbits, range_tracker=self.atracker)
         else:
             assert False, ('Error: unknown quantization scheme [a: {}]'.format(self.amode))
         # done.
@@ -231,8 +286,21 @@ class QuantizedLinear(nn.Linear):
         self.wmode         = None
         self.amode         = None
         self.nbits         = None
+        self.atracker     = self.activation_quantizer.range_tracker
+        self.wtracker     = self.weight_quantizer.range_tracker 
         # done.
 
+    def enable_parameter_updates(self):
+        self.activation_quantizer.enable_param_updates()
+        self.weight_quantizer.enable_param_updates()
+
+    def disable_parameter_updates(self):
+        self.activation_quantizer.disable_param_updates()
+        self.weight_quantizer.disable_param_updates()
+
+    def reset_quantization_parameters(self):
+        self.wtracker = MovingAverageRangeTracker(shape = (self.out_features, 1), momentum=1, track=True)
+        self.atracker = MovingAverageRangeTracker(shape = (1, self.out_features), momentum=1, track=True)
 
     """
         Forward function

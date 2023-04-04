@@ -14,7 +14,7 @@ from torch.optim.lr_scheduler import StepLR
 from torch.autograd import Variable
 
 # custom
-from utils.qutils import QuantizationEnabler
+from utils.qutils import QuantizationEnabler, QuantizationParameterEnabler
 import copy
 from utils.advattack import ATTACK_FACTORY
 
@@ -49,6 +49,32 @@ def train(epoch, net, train_loader, taskloss, scheduler, optimizer, use_cuda=Fal
 
     # report the result
     print(' : [epoch:{}][train] [loss: {:.3f}]'.format(epoch, curloss))
+    return curloss
+
+
+def train_quantization_params(epoch, net, train_loader, taskloss, use_cuda=False, 
+                   wqmode='per_channel_symmetric', aqmode='per_layer_asymmetric', nbits=8, silent=False):
+    curloss = 0.
+    
+    # quantized the model, based on the mode and bits
+    with QuantizationParameterEnabler(net, wqmode, aqmode, nbits, silent=silent):
+        net.eval()
+        for data, target in tqdm(train_loader, desc='[{}]'.format(epoch), disable=silent):
+            if use_cuda:
+                data, target = data.cuda(), target.cuda()
+            data, target = Variable(data), Variable(target)
+            output = net(data)
+
+            # : compute loss value (default: element-wise mean)
+            bsize = data.size()[0]
+            tloss = taskloss(output, target)
+            curloss += (tloss.data.item() * bsize)
+
+    # update the losses
+    curloss /= len(train_loader.dataset)
+
+    # report the result
+    print(' : [epoch:{}][quantization parameter update] [loss: {:.3f}]'.format(epoch, curloss))
     return curloss
 
 

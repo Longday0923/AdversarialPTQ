@@ -28,6 +28,7 @@ class Quantizer(nn.Module):
         self.range_tracker = range_tracker
         self.register_buffer('scale', None)
         self.register_buffer('zero_point', None)
+        self.disabled = False
 
     def update_params(self):
         raise NotImplementedError
@@ -48,9 +49,16 @@ class Quantizer(nn.Module):
     def dequantize(self, inputs):
         outputs = (inputs + self.zero_point) / self.scale
         return outputs
+    
+    def disable_param_updates(self):
+        self.disabled = True
+
+    def enable_param_updates(self):
+        self.disabled = False
 
     def forward(self, inputs):
-        self.range_tracker(inputs)
+        if not self.disabled:
+            self.range_tracker(inputs)
         self.update_params()
         outputs = self.quantize(inputs)
         outputs = self.round(outputs)

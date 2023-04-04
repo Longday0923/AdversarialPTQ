@@ -15,7 +15,7 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 
 # custom
-from utils.learner import valid, valid_quantize, train_quantize
+from utils.learner import valid, valid_quantize, train_quantize, train_quantization_params
 from utils.datasets import load_dataset
 from utils.networks import load_network, load_trained_network
 from utils.optimizers import load_lossfn, load_optimizer
@@ -238,6 +238,11 @@ def run_perturbations(parameters):
     if os.path.exists(result_csvpath): os.remove(result_csvpath)
     print (' : store logs to [{}]'.format(result_csvpath))
 
+    train_quantization_params('Base', net, train_loader, task_loss, \
+            use_cuda=parameters['system']['cuda'], \
+            wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'], \
+            nbits=parameters['attack']['numbit'], silent=True)
+
     # compute the baseline acc
     base_acc_loss = _compute_accuracies( \
         'Base', net, valid_loader, task_loss, \
@@ -262,6 +267,11 @@ def run_perturbations(parameters):
         
         cur_tloss = train_quantize(
             epoch, net, train_loader, task_loss, scheduler, optimizer, \
+            use_cuda=parameters['system']['cuda'], \
+            wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'], \
+            nbits=parameters['attack']['numbit'], silent=True)
+        
+        train_quantization_params('Base', net, train_loader, task_loss, \
             use_cuda=parameters['system']['cuda'], \
             wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'], \
             nbits=parameters['attack']['numbit'], silent=True)
