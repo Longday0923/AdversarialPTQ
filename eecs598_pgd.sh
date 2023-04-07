@@ -104,9 +104,9 @@ DATANORM=False
 # adversarial attack
 att_type="PGD"
 att_tar="untar"
-att_step_size=0.003
-att_num_steps=20
-att_epsilon=0.031
+att_step_size=0.05 # 0.05 in HW, 0.003 in TRADES
+att_num_steps=10 # 10 in HW, 20 in TRADES
+att_epsilon=0.031 # 0.3 in HW, 0.031 in TRADES
 
 
 # ----------------------------------------------------------------
