@@ -150,7 +150,7 @@ def valid(epoch, net, valid_loader, taskloss, adv:dict={}, use_cuda=False, silen
 
 def valid_quantize( 
     epoch, net, valid_loader, taskloss, adv: dict = {}, use_cuda=False, 
-    wqmode='per_channel_symmetric', aqmode='per_layer_asymmetric', nbits=8, silent=False, verbose=True):
+    wqmode='per_channel_symmetric', aqmode='per_layer_asymmetric', nbits=8, silent=False, verbose=True, adv_source="fp"):
     # test
     net.eval()
 
@@ -170,7 +170,12 @@ def valid_quantize(
                 data, target = data.cuda(), target.cuda()
 
             if adv:
-                adv["kwargs"].update({"model":fp_net, "x_nat":data, "y":target})
+                if adv_source == "fp":
+                    adv["kwargs"].update({"model":fp_net, "x_nat":data, "y":target})
+                elif adv_source == "quant":
+                    adv["kwargs"].update({"model":net, "x_nat":data, "y":target}) # attack directly on simulated quantized model
+                else:
+                    raise ValueError("Only fq or quant model is allowed for adversarial example generation.")
                 data = ATTACK_FACTORY(**adv)
 
             data, target = Variable(data, requires_grad=False), Variable(target)
@@ -191,8 +196,14 @@ def valid_quantize(
 
     # report the result
     if verbose:
-        print(' : [epoch:{}][valid] [acc: {:.2f}% / loss: {:.3f}] - [w: {}, a: {} / bits: {}]'.format( \
-            epoch, cur_acc, curloss, wqmode, aqmode, nbits))
+        if not adv:
+            comment = "clean acc"
+        elif adv_source == "fp":
+            comment = "adv from fp"
+        elif adv_source == "quant":
+            comment = "adv from quant"
+        print(' : [{}][valid] [acc: {:.2f}% / loss: {:.3f}] - [w: {}, a: {} / bits: {}]'.format( \
+            comment, cur_acc, curloss, wqmode, aqmode, nbits))
     return cur_acc, curloss
 
 

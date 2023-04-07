@@ -8,6 +8,7 @@ from networks.alexnet import AlexNet
 from networks.vgg import VGG13, VGG16, VGG19
 from networks.resnet import ResNet18, ResNet34, ResNet50, ResNet101, ResNet152
 from networks.mobilenet import MobileNetV2
+from networks.wideresnet import WideResNet
 
 
 def load_network(dataset, netname, nclasses=10):
@@ -23,6 +24,8 @@ def load_network(dataset, netname, nclasses=10):
             return ResNet34(num_classes=nclasses)
         elif 'MobileNetV2' == netname:
             return MobileNetV2(num_classes=nclasses)
+        elif 'WideResNet' == netname:
+            return WideResNet(num_classes=nclasses)
         else:
             assert False, ('Error: invalid network name [{}]'.format(netname))
 

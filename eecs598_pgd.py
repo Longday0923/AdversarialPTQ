@@ -52,10 +52,16 @@ def _run_pgd(epoch, net, dataloader, lossfn,
             wqmode=wqmode, aqmode=aqmode, nbits=each_nbits, silent=True)
         accuracies[str(each_nbits)] = (cur_qacc, cur_qloss) #TODO update to custom version
 
-        # quantized models on adversarial data
+        # quantized models on adversarial data generated from full-precision model
         cur_qacc, cur_qloss = valid_quantize(
             epoch, net, dataloader, lossfn, adv = adv, use_cuda=use_cuda,
-            wqmode=wqmode, aqmode=aqmode, nbits=each_nbits, silent=True)
+            wqmode=wqmode, aqmode=aqmode, nbits=each_nbits, silent=True, adv_source="fp")
+        accuracies[str(each_nbits)] = (cur_qacc, cur_qloss) #TODO update to custom version
+
+        # quantized models on adversarial data generated from quantized model
+        cur_qacc, cur_qloss = valid_quantize(
+            epoch, net, dataloader, lossfn, adv = adv, use_cuda=use_cuda,
+            wqmode=wqmode, aqmode=aqmode, nbits=each_nbits, silent=True, adv_source="quant")
         accuracies[str(each_nbits)] = (cur_qacc, cur_qloss) #TODO update to custom version
     return accuracies
 
@@ -267,7 +273,9 @@ if __name__ == '__main__':
     # model parameters
     parser.add_argument('--dataset', type=str, default='cifar10',
                         help='dataset used to train: cifar10.')
-    parser.add_argument('--datnorm', action='store_true', default=False,
+    # parser.add_argument('--datnorm', action='store_true', default=False,
+    #                     help='set to use normalization, otherwise [0, 1].')
+    parser.add_argument('--datnorm', type=bool, default=True,
                         help='set to use normalization, otherwise [0, 1].')
     parser.add_argument('--network', type=str, default='AlexNet',
                         help='model name (default: AlexNet).')
