@@ -4,23 +4,23 @@
 #   CIFAR10 cases
 # ------------------------------------------------------------------------------
 # CIFAR10 - AlexNet
-DATASET=cifar10
-NETWORK=AlexNet
-NETPATH=/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/AlexNet_norm_128_200_Adam-Multi.pth
-N_CLASS=10
-BATCHSZ=128
-N_EPOCH=10
-OPTIMIZ=Adam
-LEARNRT=0.00001
-MOMENTS=0.9
-O_STEPS=50
-O_GAMMA=0.1
-NUMBITS=4   # attack 8,7,6,5-bits
-W_QMODE='per_channel_symmetric'
-A_QMODE='per_layer_asymmetric'
-LRATIOS=(1.0)
-MARGINS=(5.0)
-DATANORM=True
+# DATASET=cifar10
+# NETWORK=AlexNet
+# NETPATH=/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/AlexNet_norm_128_200_Adam-Multi.pth
+# N_CLASS=10
+# BATCHSZ=128
+# N_EPOCH=10
+# OPTIMIZ=Adam
+# LEARNRT=0.00001
+# MOMENTS=0.9
+# O_STEPS=50
+# O_GAMMA=0.1
+# NUMBITS=4   # attack 8,7,6,5-bits
+# W_QMODE='per_channel_symmetric'
+# A_QMODE='per_layer_asymmetric'
+# LRATIOS=(1.0)
+# MARGINS=(5.0)
+# DATANORM=True
 
 
 # CIFAR10 - VGG16
@@ -83,23 +83,23 @@ DATANORM=True
 # DATANORM=True
 
 # CIFAR10 - WideResNet
-# DATASET=cifar10
-# NETWORK=WideResNet
-# NETPATH=/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/model_cifar_wrn.pt
-# N_CLASS=10
-# BATCHSZ=128
-# N_EPOCH=10
-# OPTIMIZ=Adam
-# LEARNRT=0.00001
-# MOMENTS=0.9
-# O_STEPS=50
-# O_GAMMA=0.1
-# NUMBITS=4   # attack 8,7,6,5-bits
-# W_QMODE='per_channel_symmetric'
-# A_QMODE='per_layer_asymmetric'
-# LRATIOS=(1.0)
-# MARGINS=(5.0)
-# DATANORM=False
+DATASET=cifar10
+NETWORK=WideResNet
+NETPATH=/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/model_cifar_wrn.pt
+N_CLASS=10
+BATCHSZ=128
+N_EPOCH=10
+OPTIMIZ=Adam
+LEARNRT=0.00001
+MOMENTS=0.9
+O_STEPS=50
+O_GAMMA=0.1
+NUMBITS=4   # attack 8,7,6,5-bits
+W_QMODE='per_channel_symmetric'
+A_QMODE='per_layer_asymmetric'
+LRATIOS=(1.0)
+MARGINS=(5.0)
+DATANORM=False
 
 # adversarial attack
 att_type="PGD"

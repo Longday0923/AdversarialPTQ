@@ -20,6 +20,8 @@ from utils.datasets import load_dataset
 from utils.networks import load_network, load_trained_network
 from utils.optimizers import load_lossfn, load_optimizer
 from utils.qutils import QuantizationEnabler
+from eecs598_pgd import _run_pgd
+
 
 
 # ------------------------------------------------------------------------------
@@ -244,12 +246,23 @@ def run_perturbations(parameters):
             nbits=parameters['attack']['numbit'], silent=True)
 
     # compute the baseline acc
-    base_acc_loss = _compute_accuracies( \
-        'Base', net, valid_loader, task_loss, \
-        use_cuda=parameters['system']['cuda'], \
-        wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'])
-    base_facc = base_acc_loss[str(parameters['attack']['numbit'])][0]
+    # base_acc_loss = _compute_accuracies( \
+    #     'Base', net, valid_loader, task_loss, \
+    #     use_cuda=parameters['system']['cuda'], \
+    #     wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'])
+    # base_facc = base_acc_loss[str(parameters['attack']['numbit'])][0]
+    print('------------------- Evaluate on PTQ ---------------------')
 
+    _run_pgd("PTQ", net, valid_loader, task_loss, \
+            use_cuda=parameters['system']['cuda'], \
+            wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'], \
+            adv = parameters['adv_attack'])
+    
+    if not parameters['qat']:
+        print('done.')
+        return
+    
+    print('------------------- QAT ---------------------')
 
     """
         Run the attacks
@@ -292,10 +305,10 @@ def run_perturbations(parameters):
 
         # : store the model
         model_savepath = os.path.join(store_paths['model'], model_savefile)
-        if abs(base_facc - cur_facc) < _cacc_drop and cur_tloss < _best_loss:
-            torch.save(net.state_dict(), model_savepath)
-            print ('  -> cur tloss [{:.4f}] < best loss [{:.4f}], store.\n'.format(cur_tloss, _best_loss))
-            _best_loss = cur_tloss
+        # if abs(base_facc - cur_facc) < _cacc_drop and cur_tloss < _best_loss:
+        #     torch.save(net.state_dict(), model_savepath)
+        #     print ('  -> cur tloss [{:.4f}] < best loss [{:.4f}], store.\n'.format(cur_tloss, _best_loss))
+        #     _best_loss = cur_tloss
 
         # record the result to a csv file
         cur_labels, cur_valow, cur_vlrow = _compose_records(epoch, cur_acc_loss)
@@ -304,6 +317,12 @@ def run_perturbations(parameters):
         _csv_logger(cur_vlrow, result_csvpath)
 
     # end for epoch...
+    print('------------------- Attack on QAT ---------------------')
+
+    _run_pgd("Post-QAT", net, valid_loader, task_loss, \
+             use_cuda=parameters['system']['cuda'], \
+             wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'], \
+             adv = parameters['adv_attack'])
 
     print (' : done.')
     # Fin.
@@ -374,6 +393,19 @@ def dump_arguments(arguments):
     parameters['attack']['lratio'] = arguments.lratio
     parameters['attack']['margin'] = arguments.margin
     parameters['attack']['numrun'] = arguments.numrun
+    # adv attack
+    parameters['adv_attack'] = {}
+    if arguments.att_type is not None:
+        parameters['adv_attack']['type'] = arguments.att_type
+        parameters['adv_attack']['tar'] = arguments.att_tar
+        parameters['adv_attack']['kwargs'] = {}
+        parameters['adv_attack']['kwargs']['step_size'] = arguments.att_step_size
+        if arguments.att_num_steps is not None:
+            parameters['adv_attack']['kwargs']['num_steps'] = arguments.att_num_steps
+        if arguments.att_epsilon is not None:
+            parameters['adv_attack']['kwargs']['epsilon'] = arguments.att_epsilon
+    # QAT switch
+    parameters['qat'] = arguments.qat
     # print out
     print(json.dumps(parameters, indent=2))
     return parameters
@@ -437,6 +469,16 @@ if __name__ == '__main__':
                         help='a constant, the ratio between the two losses (default: 0.2)')
     parser.add_argument('--margin', type=float, default=5.0,
                         help='a constant, the margin for the quantized loss (default: 5.0)')
+
+    # adversarial attack hyper=param
+    parser.add_argument('--att-type', type=str, default=None)
+    parser.add_argument('--att-tar', type=str, default=None)
+    parser.add_argument('--att-step-size', type=float, default=None)
+    parser.add_argument('--att-num-steps', type=int, default=None)
+    parser.add_argument('--att-epsilon', type=float, default=None)
+
+    # QAT
+    parser.add_argument('--qat', type=bool, default=True)
 
     # for analysis
     parser.add_argument('--numrun', type=int, default=-1,

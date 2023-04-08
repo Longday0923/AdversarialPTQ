@@ -6,11 +6,11 @@
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16g
-#SBATCH --time=1:00:00
+#SBATCH --time=3:00:00
 #SBATCH --account=eecs598w23_class
 #SBATCH --partition=gpu
 #SBATCH --output=./logs/%x-%j.log
 
 my_job_header
 
-bash eecs598_qat_VGG.sh
+bash eecs598_qat_WideResNet.sh

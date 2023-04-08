@@ -197,11 +197,11 @@ def valid_quantize(
     # report the result
     if verbose:
         if not adv:
-            comment = "clean acc"
+            comment = "CLEAN"
         elif adv_source == "fp":
-            comment = "adv from fp"
+            comment = "FP-ADV"
         elif adv_source == "quant":
-            comment = "adv from quant"
+            comment = "QUANT-ADV"
         print(' : [{}][valid] [acc: {:.2f}% / loss: {:.3f}] - [w: {}, a: {} / bits: {}]'.format( \
             comment, cur_acc, curloss, wqmode, aqmode, nbits))
     return cur_acc, curloss
