@@ -1,0 +1,16 @@
+#!/bin/bash
+#SBATCH --job-name=qat_ResNet_stepsize
+#SBATCH --mail-user=zhtianyu@umich.edu
+#SBATCH --mail-type=FAIL
+#SBATCH --cpus-per-task=8
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:1
+#SBATCH --mem=16g
+#SBATCH --time=6:00:00
+#SBATCH --account=eecs598w23_class
+#SBATCH --partition=gpu
+#SBATCH --output=./logs/%x-%j.log
+
+my_job_header
+
+bash eecs598_qat_ResNet_stepsize.sh

@@ -99,7 +99,7 @@ W_QMODE='per_channel_symmetric'
 A_QMODE='per_layer_asymmetric'
 LRATIOS=(1.0)
 MARGINS=(5.0)
-DATANORM=False
+DATANORM=false
 
 # adversarial attack
 att_type="PGD"

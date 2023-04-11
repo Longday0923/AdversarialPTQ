@@ -57,5 +57,5 @@ def load_trained_network(net, cuda, fpath, qremove=True):
             lname: lparams for lname, lparams in model_dict.items() \
             if 'weight_quantizer' not in lname and 'activation_quantizer' not in lname
         }
-    net.load_state_dict(model_dict)
+    net.load_state_dict(model_dict, strict=True)
     # done.

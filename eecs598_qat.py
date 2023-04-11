@@ -246,11 +246,11 @@ def run_perturbations(parameters):
             nbits=parameters['attack']['numbit'], silent=True)
 
     # compute the baseline acc
-    # base_acc_loss = _compute_accuracies( \
-    #     'Base', net, valid_loader, task_loss, \
-    #     use_cuda=parameters['system']['cuda'], \
-    #     wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'])
-    # base_facc = base_acc_loss[str(parameters['attack']['numbit'])][0]
+    base_acc_loss = _compute_accuracies( \
+        'Base', net, valid_loader, task_loss, \
+        use_cuda=parameters['system']['cuda'], \
+        wqmode=parameters['model']['w-qmode'], aqmode=parameters['model']['a-qmode'])
+    base_facc = base_acc_loss[str(parameters['attack']['numbit'])][0]
     print('------------------- Evaluate on PTQ ---------------------')
 
     _run_pgd("PTQ", net, valid_loader, task_loss, \
