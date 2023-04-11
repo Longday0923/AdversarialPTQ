@@ -1,0 +1,104 @@
+
+Job information
+#-------------------------------------------------------------------
+SLURM_SUBMIT_HOST    gl-login2.arc-ts.umich.edu
+SLURM_JOB_ACCOUNT    eecs553w23_class
+SLURM_JOB_PARTITION  gpu
+SLURM_JOB_NAME       AdvPTQ
+SLURM_JOBID          50299571
+SLURM_NODELIST       gl1003
+SLURM_JOB_NUM_NODES  1
+SLURM_NTASKS         
+SLURM_TASKS_PER_NODE 1
+SLURM_CPUS_PER_TASK  8
+SLURM_NPROCS         
+SLURM_MEM_PER_CPU    
+GPU_DEVICE_ORDINAL   0
+GPU 0: Tesla V100-PCIE-16GB (UUID: GPU-200df090-e3d3-5f49-b46c-da6d0ded55a4)
+SLURM_SUBMIT_DIR     /home/zhtianyu/AdversarialPTQ
+
+scheduling priority             (-e) 0
+pending signals                 (-i) 766930
+max memory size         (kbytes, -m) 16777216
+open files                      (-n) 131072
+pipe size            (512 bytes, -p) 8
+POSIX message queues     (bytes, -q) 819200
+real-time priority              (-r) 0
+max user processes              (-u) 766930
+
+Running on gl1003.arc-ts.umich.edu at Mon Apr  3 16:04:08 EDT 2023
+
+Currently Loaded Modules:
+  1) python3.9-anaconda/2021.11   2) cuda/11.3.0
+
+Your job output begins below the line
+#-------------------------------------------------------------------
+python eecs598_pgd.py     --seed 42     --dataset cifar10     --datnorm True    --network MobileNetV2     --trained=/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/MobileNetV2_norm_128_200_Adam-Multi.pth     --classes 10     --batch-size 64     --epoch 1     --optimizer Adam     --lr 0.0001     --momentum 0.9     --numbit 8 7 6 5     --w-qmode per_channel_symmetric     --a-qmode per_layer_asymmetric     --lratio 0.25     --margin 5.0     --step 50     --gamma 0.1 \ 
+    --numrun 1     --att-type PGD     --att-tar untar     --att-step-size 0.05     --att-num-steps 10     --att-epsilon 0.031
+cuda available:  True
+cuda avail:  True
+{
+  "system": {
+    "seed": 42,
+    "cuda": true,
+    "num-workers": 4,
+    "pin-memory": true
+  },
+  "model": {
+    "dataset": "cifar10",
+    "datnorm": true,
+    "network": "MobileNetV2",
+    "trained": "/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/MobileNetV2_norm_128_200_Adam-Multi.pth",
+    "lossfunc": "cross-entropy",
+    "optimizer": "Adam",
+    "classes": 10,
+    "w-qmode": "per_channel_symmetric",
+    "a-qmode": "per_layer_asymmetric"
+  },
+  "params": {
+    "batch-size": 64,
+    "epoch": 1,
+    "lr": 0.0001,
+    "momentum": 0.9,
+    "step": 50,
+    "gamma": 0.1
+  },
+  "attack": {
+    "numbit": [
+      8,
+      7,
+      6,
+      5
+    ],
+    "lratio": 0.25,
+    "margin": 5.0,
+    "numrun": 1
+  },
+  "adv_attack": {
+    "type": "PGD",
+    "tar": "untar",
+    "kwargs": {
+      "step_size": 0.05,
+      "num_steps": 10,
+      "epsilon": 0.031
+    }
+  }
+}
+Files already downloaded and verified
+Files already downloaded and verified
+ : load the dataset - cifar10 (norm: True)
+ : load network - MobileNetV2
+ : load loss - cross-entropy / optim - Adam
+ : set the store locations
+  - model : models/cifar10/eecs598_pgd/MobileNetV2_norm_128_200_Adam-Multi
+  - result: results/cifar10/eecs598_pgd/MobileNetV2_norm_128_200_Adam-Multi
+ : store logs to [results/cifar10/eecs598_pgd/MobileNetV2_norm_128_200_Adam-Multi/attack_8765_0.25_5.0_wpcs_apla-optimize_1_Adam_0.0001.1.csv]
+ : [epoch:Base][valid] [acc: 92.56% / loss: 0.252]
+ : [epoch:1][valid] [acc: 12.97% / loss: 6.625]
+ : [epoch:1][valid] [acc: 92.52% / loss: 0.254] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [epoch:1][valid] [acc: 13.17% / loss: 6.577] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [epoch:1][valid] [acc: 91.95% / loss: 0.282] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [epoch:1][valid] [acc: 14.87% / loss: 6.280] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [epoch:1][valid] [acc: 76.60% / loss: 0.973] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:1][valid] [acc: 27.95% / loss: 3.831] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : done.

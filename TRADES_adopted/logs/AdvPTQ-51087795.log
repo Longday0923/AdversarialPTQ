@@ -1,0 +1,39 @@
+
+Job information
+#-------------------------------------------------------------------
+SLURM_SUBMIT_HOST    gl-login2.arc-ts.umich.edu
+SLURM_JOB_ACCOUNT    eecs598w23_class
+SLURM_JOB_PARTITION  gpu
+SLURM_JOB_NAME       AdvPTQ
+SLURM_JOBID          51087795
+SLURM_NODELIST       gl1010
+SLURM_JOB_NUM_NODES  1
+SLURM_NTASKS         
+SLURM_TASKS_PER_NODE 1
+SLURM_CPUS_PER_TASK  8
+SLURM_NPROCS         
+SLURM_MEM_PER_CPU    
+GPU_DEVICE_ORDINAL   0
+GPU 0: Tesla V100-PCIE-16GB (UUID: GPU-7c9370de-b1e0-c6a1-667f-6eac710e00f6)
+SLURM_SUBMIT_DIR     /home/zhtianyu/AdversarialPTQ/TRADES_adopted
+
+scheduling priority             (-e) 0
+pending signals                 (-i) 766930
+max memory size         (kbytes, -m) 16777216
+open files                      (-n) 131072
+pipe size            (512 bytes, -p) 8
+POSIX message queues     (bytes, -q) 819200
+real-time priority              (-r) 0
+max user processes              (-u) 766930
+
+Running on gl1010.arc-ts.umich.edu at Sun Apr  9 20:12:26 EDT 2023
+
+Currently Loaded Modules:
+  1) python3.9-anaconda/2021.11   2) cuda/11.3.0
+
+Your job output begins below the line
+#-------------------------------------------------------------------
+Files already downloaded and verified
+pgd white-box attack
+natural_err_total:  84.92
+robust_err_total:  57.14

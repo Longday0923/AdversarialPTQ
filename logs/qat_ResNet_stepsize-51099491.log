@@ -1,0 +1,461 @@
+
+Job information
+#-------------------------------------------------------------------
+SLURM_SUBMIT_HOST    gl-login3.arc-ts.umich.edu
+SLURM_JOB_ACCOUNT    eecs598w23_class
+SLURM_JOB_PARTITION  gpu
+SLURM_JOB_NAME       qat_ResNet_stepsize
+SLURM_JOBID          51099491
+SLURM_NODELIST       gl1010
+SLURM_JOB_NUM_NODES  1
+SLURM_NTASKS         
+SLURM_TASKS_PER_NODE 1
+SLURM_CPUS_PER_TASK  8
+SLURM_NPROCS         
+SLURM_MEM_PER_CPU    
+GPU_DEVICE_ORDINAL   0
+GPU 0: Tesla V100-PCIE-16GB (UUID: GPU-22549d30-fc75-741b-37b3-c6c6debca486)
+SLURM_SUBMIT_DIR     /home/zhtianyu/AdversarialPTQ
+
+scheduling priority             (-e) 0
+pending signals                 (-i) 766930
+max memory size         (kbytes, -m) 16777216
+open files                      (-n) 131072
+pipe size            (512 bytes, -p) 8
+POSIX message queues     (bytes, -q) 819200
+real-time priority              (-r) 0
+max user processes              (-u) 766930
+
+Running on gl1010.arc-ts.umich.edu at Mon Apr 10 01:36:30 EDT 2023
+
+Currently Loaded Modules:
+  1) python3.9-anaconda/2021.11   2) cuda/11.3.0
+
+Your job output begins below the line
+#-------------------------------------------------------------------
+======================= step-size = 0.1 =======================
+{
+  "system": {
+    "seed": 225,
+    "cuda": true,
+    "num-workers": 4,
+    "pin-memory": true
+  },
+  "model": {
+    "dataset": "cifar10",
+    "datnorm": true,
+    "network": "ResNet18",
+    "trained": "/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/ResNet18_norm_128_200_Adam-Multi.pth",
+    "lossfunc": "cross-entropy",
+    "optimizer": "Adam",
+    "classes": 10,
+    "w-qmode": "per_channel_symmetric",
+    "a-qmode": "per_layer_asymmetric"
+  },
+  "params": {
+    "batch-size": 128,
+    "epoch": 10,
+    "lr": 0.0001,
+    "momentum": 0.9,
+    "step": 50,
+    "gamma": 0.1
+  },
+  "attack": {
+    "numbit": 4,
+    "lratio": 0.25,
+    "margin": 5.0,
+    "numrun": 1
+  },
+  "adv_attack": {
+    "type": "PGD",
+    "tar": "untar",
+    "kwargs": {
+      "step_size": 0.1,
+      "num_steps": 10,
+      "epsilon": 0.031
+    }
+  },
+  "qat": true
+}
+Files already downloaded and verified
+Files already downloaded and verified
+ : load the dataset - cifar10 (norm: True)
+ : load network - ResNet18
+ : load loss - cross-entropy / optim - Adam
+ : set the store locations
+  - model : models/cifar10/eecs598_qat/ResNet18_norm_128_200_Adam-Multi
+  - result: results/cifar10/eecs598_qat/ResNet18_norm_128_200_Adam-Multi
+ : store logs to [results/cifar10/eecs598_qat/ResNet18_norm_128_200_Adam-Multi/attack_4_0.25_5.0_wpcs_apla-optimize_10_Adam_0.0001.1.csv]
+ : [epoch:Base][quantization parameter update] [loss: 0.182]
+ : [epoch:Base][valid] [acc: 93.59% / loss: 0.253]
+ : [CLEAN][valid] [acc: 93.45% / loss: 0.253] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 93.39% / loss: 0.264] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 89.07% / loss: 0.449] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+------------------- Evaluate on PTQ ---------------------
+ : [epoch:PTQ][valid] [acc: 32.31% / loss: 4.799]
+ : [CLEAN][valid] [acc: 93.45% / loss: 0.253] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [FP-ADV][valid] [acc: 28.73% / loss: 5.229] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [QUANT-ADV][valid] [acc: 30.56% / loss: 4.927] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 93.39% / loss: 0.264] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [FP-ADV][valid] [acc: 35.16% / loss: 4.393] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [QUANT-ADV][valid] [acc: 31.38% / loss: 4.800] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 89.07% / loss: 0.449] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [FP-ADV][valid] [acc: 50.46% / loss: 2.864] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [QUANT-ADV][valid] [acc: 30.21% / loss: 5.076] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+------------------- QAT ---------------------
+ : [epoch:1][train] [loss: 0.090]
+ : [epoch:Base][quantization parameter update] [loss: 0.062]
+ : [epoch:1][valid] [acc: 91.98% / loss: 0.315]
+ : [CLEAN][valid] [acc: 91.98% / loss: 0.313] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.11% / loss: 0.311] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.17% / loss: 0.321] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:2][train] [loss: 0.069]
+ : [epoch:Base][quantization parameter update] [loss: 0.056]
+ : [epoch:2][valid] [acc: 92.04% / loss: 0.315]
+ : [CLEAN][valid] [acc: 92.02% / loss: 0.314] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.01% / loss: 0.312] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.15% / loss: 0.313] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:3][train] [loss: 0.062]
+ : [epoch:Base][quantization parameter update] [loss: 0.046]
+ : [epoch:3][valid] [acc: 92.40% / loss: 0.299]
+ : [CLEAN][valid] [acc: 92.36% / loss: 0.299] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.27% / loss: 0.298] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.20% / loss: 0.307] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:4][train] [loss: 0.056]
+ : [epoch:Base][quantization parameter update] [loss: 0.041]
+ : [epoch:4][valid] [acc: 92.34% / loss: 0.316]
+ : [CLEAN][valid] [acc: 92.31% / loss: 0.315] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.40% / loss: 0.312] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.38% / loss: 0.315] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:5][train] [loss: 0.050]
+ : [epoch:Base][quantization parameter update] [loss: 0.036]
+ : [epoch:5][valid] [acc: 92.43% / loss: 0.320]
+ : [CLEAN][valid] [acc: 92.38% / loss: 0.320] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.43% / loss: 0.318] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.38% / loss: 0.310] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:6][train] [loss: 0.044]
+ : [epoch:Base][quantization parameter update] [loss: 0.035]
+ : [epoch:6][valid] [acc: 92.42% / loss: 0.315]
+ : [CLEAN][valid] [acc: 92.38% / loss: 0.315] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.45% / loss: 0.313] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.57% / loss: 0.311] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:7][train] [loss: 0.042]
+ : [epoch:Base][quantization parameter update] [loss: 0.036]
+ : [epoch:7][valid] [acc: 92.26% / loss: 0.332]
+ : [CLEAN][valid] [acc: 92.22% / loss: 0.333] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.10% / loss: 0.333] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.42% / loss: 0.329] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:8][train] [loss: 0.041]
+ : [epoch:Base][quantization parameter update] [loss: 0.031]
+ : [epoch:8][valid] [acc: 92.50% / loss: 0.313]
+ : [CLEAN][valid] [acc: 92.46% / loss: 0.313] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.44% / loss: 0.312] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.39% / loss: 0.322] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:9][train] [loss: 0.038]
+ : [epoch:Base][quantization parameter update] [loss: 0.029]
+ : [epoch:9][valid] [acc: 92.43% / loss: 0.321]
+ : [CLEAN][valid] [acc: 92.45% / loss: 0.320] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.61% / loss: 0.317] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.57% / loss: 0.327] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:10][train] [loss: 0.033]
+ : [epoch:Base][quantization parameter update] [loss: 0.027]
+ : [epoch:10][valid] [acc: 92.71% / loss: 0.303]
+ : [CLEAN][valid] [acc: 92.70% / loss: 0.303] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.71% / loss: 0.302] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.49% / loss: 0.330] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+------------------- Attack on QAT ---------------------
+ : [epoch:Post-QAT][valid] [acc: 38.00% / loss: 4.897]
+ : [CLEAN][valid] [acc: 92.70% / loss: 0.303] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [FP-ADV][valid] [acc: 34.83% / loss: 5.324] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [QUANT-ADV][valid] [acc: 36.37% / loss: 5.011] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.71% / loss: 0.302] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [FP-ADV][valid] [acc: 40.06% / loss: 4.537] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [QUANT-ADV][valid] [acc: 37.87% / loss: 4.850] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.49% / loss: 0.330] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [FP-ADV][valid] [acc: 57.50% / loss: 2.743] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [QUANT-ADV][valid] [acc: 42.27% / loss: 4.310] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : done.
+======================= step-size = 0.01 =======================
+{
+  "system": {
+    "seed": 225,
+    "cuda": true,
+    "num-workers": 4,
+    "pin-memory": true
+  },
+  "model": {
+    "dataset": "cifar10",
+    "datnorm": true,
+    "network": "ResNet18",
+    "trained": "/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/ResNet18_norm_128_200_Adam-Multi.pth",
+    "lossfunc": "cross-entropy",
+    "optimizer": "Adam",
+    "classes": 10,
+    "w-qmode": "per_channel_symmetric",
+    "a-qmode": "per_layer_asymmetric"
+  },
+  "params": {
+    "batch-size": 128,
+    "epoch": 10,
+    "lr": 0.0001,
+    "momentum": 0.9,
+    "step": 50,
+    "gamma": 0.1
+  },
+  "attack": {
+    "numbit": 4,
+    "lratio": 0.25,
+    "margin": 5.0,
+    "numrun": 1
+  },
+  "adv_attack": {
+    "type": "PGD",
+    "tar": "untar",
+    "kwargs": {
+      "step_size": 0.01,
+      "num_steps": 10,
+      "epsilon": 0.031
+    }
+  },
+  "qat": true
+}
+Files already downloaded and verified
+Files already downloaded and verified
+ : load the dataset - cifar10 (norm: True)
+ : load network - ResNet18
+ : load loss - cross-entropy / optim - Adam
+ : set the store locations
+  - model : models/cifar10/eecs598_qat/ResNet18_norm_128_200_Adam-Multi
+  - result: results/cifar10/eecs598_qat/ResNet18_norm_128_200_Adam-Multi
+ : store logs to [results/cifar10/eecs598_qat/ResNet18_norm_128_200_Adam-Multi/attack_4_0.25_5.0_wpcs_apla-optimize_10_Adam_0.0001.1.csv]
+ : [epoch:Base][quantization parameter update] [loss: 0.182]
+ : [epoch:Base][valid] [acc: 93.59% / loss: 0.253]
+ : [CLEAN][valid] [acc: 93.45% / loss: 0.253] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 93.39% / loss: 0.264] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 89.07% / loss: 0.449] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+------------------- Evaluate on PTQ ---------------------
+ : [epoch:PTQ][valid] [acc: 5.11% / loss: 14.078]
+ : [CLEAN][valid] [acc: 93.45% / loss: 0.253] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [FP-ADV][valid] [acc: 4.19% / loss: 13.756] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [QUANT-ADV][valid] [acc: 4.35% / loss: 13.731] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 93.39% / loss: 0.264] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [FP-ADV][valid] [acc: 8.01% / loss: 11.598] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [QUANT-ADV][valid] [acc: 7.98% / loss: 11.618] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 89.07% / loss: 0.449] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [FP-ADV][valid] [acc: 33.66% / loss: 4.829] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [QUANT-ADV][valid] [acc: 12.13% / loss: 9.389] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+------------------- QAT ---------------------
+ : [epoch:1][train] [loss: 0.090]
+ : [epoch:Base][quantization parameter update] [loss: 0.062]
+ : [epoch:1][valid] [acc: 91.98% / loss: 0.315]
+ : [CLEAN][valid] [acc: 91.98% / loss: 0.313] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.11% / loss: 0.311] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.17% / loss: 0.321] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:2][train] [loss: 0.069]
+ : [epoch:Base][quantization parameter update] [loss: 0.056]
+ : [epoch:2][valid] [acc: 92.04% / loss: 0.315]
+ : [CLEAN][valid] [acc: 92.02% / loss: 0.314] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.01% / loss: 0.312] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.15% / loss: 0.313] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:3][train] [loss: 0.062]
+ : [epoch:Base][quantization parameter update] [loss: 0.046]
+ : [epoch:3][valid] [acc: 92.40% / loss: 0.299]
+ : [CLEAN][valid] [acc: 92.36% / loss: 0.299] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.27% / loss: 0.298] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.20% / loss: 0.307] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:4][train] [loss: 0.056]
+ : [epoch:Base][quantization parameter update] [loss: 0.041]
+ : [epoch:4][valid] [acc: 92.34% / loss: 0.316]
+ : [CLEAN][valid] [acc: 92.31% / loss: 0.315] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.40% / loss: 0.312] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.38% / loss: 0.315] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:5][train] [loss: 0.050]
+ : [epoch:Base][quantization parameter update] [loss: 0.036]
+ : [epoch:5][valid] [acc: 92.43% / loss: 0.320]
+ : [CLEAN][valid] [acc: 92.38% / loss: 0.320] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.43% / loss: 0.318] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.38% / loss: 0.310] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:6][train] [loss: 0.044]
+ : [epoch:Base][quantization parameter update] [loss: 0.035]
+ : [epoch:6][valid] [acc: 92.42% / loss: 0.315]
+ : [CLEAN][valid] [acc: 92.38% / loss: 0.315] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.45% / loss: 0.313] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.57% / loss: 0.311] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:7][train] [loss: 0.042]
+ : [epoch:Base][quantization parameter update] [loss: 0.036]
+ : [epoch:7][valid] [acc: 92.26% / loss: 0.332]
+ : [CLEAN][valid] [acc: 92.22% / loss: 0.333] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.10% / loss: 0.333] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.42% / loss: 0.329] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:8][train] [loss: 0.041]
+ : [epoch:Base][quantization parameter update] [loss: 0.031]
+ : [epoch:8][valid] [acc: 92.50% / loss: 0.313]
+ : [CLEAN][valid] [acc: 92.46% / loss: 0.313] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.44% / loss: 0.312] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.39% / loss: 0.322] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:9][train] [loss: 0.038]
+ : [epoch:Base][quantization parameter update] [loss: 0.029]
+ : [epoch:9][valid] [acc: 92.43% / loss: 0.321]
+ : [CLEAN][valid] [acc: 92.45% / loss: 0.320] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.61% / loss: 0.317] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.57% / loss: 0.327] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:10][train] [loss: 0.033]
+ : [epoch:Base][quantization parameter update] [loss: 0.027]
+ : [epoch:10][valid] [acc: 92.71% / loss: 0.303]
+ : [CLEAN][valid] [acc: 92.70% / loss: 0.303] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.71% / loss: 0.302] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.49% / loss: 0.330] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+------------------- Attack on QAT ---------------------
+ : [epoch:Post-QAT][valid] [acc: 16.82% / loss: 10.514]
+ : [CLEAN][valid] [acc: 92.70% / loss: 0.303] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [FP-ADV][valid] [acc: 14.96% / loss: 10.881] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [QUANT-ADV][valid] [acc: 15.03% / loss: 10.938] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.71% / loss: 0.302] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [FP-ADV][valid] [acc: 20.18% / loss: 9.179] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [QUANT-ADV][valid] [acc: 19.80% / loss: 9.248] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.49% / loss: 0.330] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [FP-ADV][valid] [acc: 42.74% / loss: 4.507] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [QUANT-ADV][valid] [acc: 25.11% / loss: 7.684] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : done.
+======================= step-size = 0.003 =======================
+{
+  "system": {
+    "seed": 225,
+    "cuda": true,
+    "num-workers": 4,
+    "pin-memory": true
+  },
+  "model": {
+    "dataset": "cifar10",
+    "datnorm": true,
+    "network": "ResNet18",
+    "trained": "/gpfs/accounts/eecs598w23_class_root/eecs598w23_class/shared_data/zhtianyu/models/cifar10/train/ResNet18_norm_128_200_Adam-Multi.pth",
+    "lossfunc": "cross-entropy",
+    "optimizer": "Adam",
+    "classes": 10,
+    "w-qmode": "per_channel_symmetric",
+    "a-qmode": "per_layer_asymmetric"
+  },
+  "params": {
+    "batch-size": 128,
+    "epoch": 10,
+    "lr": 0.0001,
+    "momentum": 0.9,
+    "step": 50,
+    "gamma": 0.1
+  },
+  "attack": {
+    "numbit": 4,
+    "lratio": 0.25,
+    "margin": 5.0,
+    "numrun": 1
+  },
+  "adv_attack": {
+    "type": "PGD",
+    "tar": "untar",
+    "kwargs": {
+      "step_size": 0.003,
+      "num_steps": 10,
+      "epsilon": 0.031
+    }
+  },
+  "qat": true
+}
+Files already downloaded and verified
+Files already downloaded and verified
+ : load the dataset - cifar10 (norm: True)
+ : load network - ResNet18
+ : load loss - cross-entropy / optim - Adam
+ : set the store locations
+  - model : models/cifar10/eecs598_qat/ResNet18_norm_128_200_Adam-Multi
+  - result: results/cifar10/eecs598_qat/ResNet18_norm_128_200_Adam-Multi
+ : store logs to [results/cifar10/eecs598_qat/ResNet18_norm_128_200_Adam-Multi/attack_4_0.25_5.0_wpcs_apla-optimize_10_Adam_0.0001.1.csv]
+ : [epoch:Base][quantization parameter update] [loss: 0.182]
+ : [epoch:Base][valid] [acc: 93.59% / loss: 0.253]
+ : [CLEAN][valid] [acc: 93.45% / loss: 0.253] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 93.39% / loss: 0.264] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 89.07% / loss: 0.449] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+------------------- Evaluate on PTQ ---------------------
+ : [epoch:PTQ][valid] [acc: 20.37% / loss: 7.944]
+ : [CLEAN][valid] [acc: 93.45% / loss: 0.253] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [FP-ADV][valid] [acc: 19.87% / loss: 7.897] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [QUANT-ADV][valid] [acc: 20.30% / loss: 7.784] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 93.39% / loss: 0.264] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [FP-ADV][valid] [acc: 26.37% / loss: 6.447] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [QUANT-ADV][valid] [acc: 26.61% / loss: 6.399] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 89.07% / loss: 0.449] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [FP-ADV][valid] [acc: 55.38% / loss: 2.597] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [QUANT-ADV][valid] [acc: 33.10% / loss: 5.088] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+------------------- QAT ---------------------
+ : [epoch:1][train] [loss: 0.090]
+ : [epoch:Base][quantization parameter update] [loss: 0.062]
+ : [epoch:1][valid] [acc: 91.98% / loss: 0.315]
+ : [CLEAN][valid] [acc: 91.98% / loss: 0.313] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.11% / loss: 0.311] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.17% / loss: 0.321] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:2][train] [loss: 0.069]
+ : [epoch:Base][quantization parameter update] [loss: 0.056]
+ : [epoch:2][valid] [acc: 92.04% / loss: 0.315]
+ : [CLEAN][valid] [acc: 92.02% / loss: 0.314] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.01% / loss: 0.312] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.15% / loss: 0.313] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:3][train] [loss: 0.062]
+ : [epoch:Base][quantization parameter update] [loss: 0.046]
+ : [epoch:3][valid] [acc: 92.40% / loss: 0.299]
+ : [CLEAN][valid] [acc: 92.36% / loss: 0.299] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.27% / loss: 0.298] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.20% / loss: 0.307] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:4][train] [loss: 0.056]
+ : [epoch:Base][quantization parameter update] [loss: 0.041]
+ : [epoch:4][valid] [acc: 92.34% / loss: 0.316]
+ : [CLEAN][valid] [acc: 92.31% / loss: 0.315] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.40% / loss: 0.312] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.38% / loss: 0.315] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:5][train] [loss: 0.050]
+ : [epoch:Base][quantization parameter update] [loss: 0.036]
+ : [epoch:5][valid] [acc: 92.43% / loss: 0.320]
+ : [CLEAN][valid] [acc: 92.38% / loss: 0.320] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.43% / loss: 0.318] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.38% / loss: 0.310] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:6][train] [loss: 0.044]
+ : [epoch:Base][quantization parameter update] [loss: 0.035]
+ : [epoch:6][valid] [acc: 92.42% / loss: 0.315]
+ : [CLEAN][valid] [acc: 92.38% / loss: 0.315] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.45% / loss: 0.313] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.57% / loss: 0.311] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:7][train] [loss: 0.042]
+ : [epoch:Base][quantization parameter update] [loss: 0.036]
+ : [epoch:7][valid] [acc: 92.26% / loss: 0.332]
+ : [CLEAN][valid] [acc: 92.22% / loss: 0.333] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.10% / loss: 0.333] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.42% / loss: 0.329] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:8][train] [loss: 0.041]
+ : [epoch:Base][quantization parameter update] [loss: 0.031]
+ : [epoch:8][valid] [acc: 92.50% / loss: 0.313]
+ : [CLEAN][valid] [acc: 92.46% / loss: 0.313] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.44% / loss: 0.312] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.39% / loss: 0.322] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:9][train] [loss: 0.038]
+ : [epoch:Base][quantization parameter update] [loss: 0.029]
+ : [epoch:9][valid] [acc: 92.43% / loss: 0.321]
+ : [CLEAN][valid] [acc: 92.45% / loss: 0.320] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.61% / loss: 0.317] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.57% / loss: 0.327] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [epoch:10][train] [loss: 0.033]
+ : [epoch:Base][quantization parameter update] [loss: 0.027]
+ : [epoch:10][valid] [acc: 92.71% / loss: 0.303]
+ : [CLEAN][valid] [acc: 92.70% / loss: 0.303] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.71% / loss: 0.302] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.49% / loss: 0.330] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+------------------- Attack on QAT ---------------------
+ : [epoch:Post-QAT][valid] [acc: 37.81% / loss: 5.464]
+ : [CLEAN][valid] [acc: 92.70% / loss: 0.303] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [FP-ADV][valid] [acc: 37.19% / loss: 5.547] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [QUANT-ADV][valid] [acc: 36.99% / loss: 5.541] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 8]
+ : [CLEAN][valid] [acc: 92.71% / loss: 0.302] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [FP-ADV][valid] [acc: 41.21% / loss: 4.818] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [QUANT-ADV][valid] [acc: 41.60% / loss: 4.779] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 6]
+ : [CLEAN][valid] [acc: 92.49% / loss: 0.330] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [FP-ADV][valid] [acc: 63.32% / loss: 2.300] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : [QUANT-ADV][valid] [acc: 48.89% / loss: 3.835] - [w: per_channel_symmetric, a: per_layer_asymmetric / bits: 4]
+ : done.
